@@ -1,0 +1,18 @@
+import kagglehub
+import pandas as pd
+
+
+# Download latest version
+path = kagglehub.dataset_download("janus137/six-decades-of-california-earthquakes")
+
+print("Path to dataset files:", path)
+
+# setting up dataframe
+df_city_loc = pd.read_csv(path + "/cities_usa_latlon.csv")
+df_seismic_norcal = pd.read_csv(
+    path + "/data_seismic_NorCal_events_iris_1960_to_2024DEC30_20241230a.csv"
+)
+df_seismic_socal = pd.read_csv(
+    path + "/data_seismic_SoCal_1960_to_2024DEC31_20241231a.csv"
+)
+df_major_events = pd.read_csv(path + "/major_seismic_events_socal_1800to2024.csv")
