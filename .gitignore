@@ -14,4 +14,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .ipynb_checkpoints
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32e4f2b (updated .gitignore)
