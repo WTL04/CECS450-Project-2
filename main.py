@@ -1,5 +1,8 @@
 import kagglehub
 import pandas as pd
+from src.layers_decade_mag import add_decade_heat_layers, add_magbin_markers
+from folium import Map, LayerControl
+
 
 
 # Download latest version
@@ -16,3 +19,11 @@ df_seismic_socal = pd.read_csv(
     path + "/data_seismic_SoCal_1960_to_2024DEC31_20241231a.csv"
 )
 df_major_events = pd.read_csv(path + "/major_seismic_events_socal_1800to2024.csv")
+
+#interactive map with the decade & magnitude toggles
+m = Map(location=[36.7, -119.4], zoom_start=6, tiles="cartodbpositron")
+add_decade_heat_layers(m, df_seismic_socal)
+add_magbin_markers(m, df_seismic_socal)
+LayerControl(collapsed=False).add_to(m)
+m.save("outputs/earthquakes_layers.html")
+print("Saved outputs/earthquakes_layers.html")
