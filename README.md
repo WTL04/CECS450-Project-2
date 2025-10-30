@@ -4,7 +4,10 @@
 ```
 pip install -r req.txt
 ```
+<<<<<<< HEAD
 **Run visualization**
 ```
 python map.py
 ```
+=======
+>>>>>>> fc32a89 (added heatmap and readme)
