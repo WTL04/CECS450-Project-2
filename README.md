@@ -4,3 +4,7 @@
 ```
 pip install -r req.txt
 ```
+**Run visualization**
+```
+python map.py
+```
