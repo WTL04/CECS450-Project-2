@@ -2,4 +2,5 @@ folium
 kagglehub
 pandas
 numpy
-
+geopandas
+rasterio
