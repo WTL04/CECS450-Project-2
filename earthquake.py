@@ -5,6 +5,7 @@ from src.layers_decade_mag import add_decade_heat_layers, add_magbin_markers
 from src.single_quake_panel import add_sidepanel_quake_layer
 from src.time_slider import add_time_slider_layer
 from src.major_event import create_major_event_layer
+from src.filters_clusters import add_filtered_layers
 
 # Download latest version
 path = kagglehub.dataset_download("janus137/six-decades-of-california-earthquakes")
@@ -50,3 +51,11 @@ fg_major_events.add_to(m)
 LayerControl(collapsed=False).add_to(m)
 m.save("outputs/earthquake_major_events.html")
 print("Saved outputs/earthquake_major_events.html")
+
+#filter system for SoCal earthquake visualization
+df_socal = pd.read_csv(path + "/data_seismic_SoCal_1960_to_2024DEC31_20241231a.csv")
+m = Map(location=[34.0, -117.0], zoom_start=6, tiles="cartodbpositron")
+add_filtered_layers(m, df_socal)
+LayerControl(collapsed=False).add_to(m)
+m.save("outputs/earthquake_socal_county_map.html")
+print(f"Saved {output_path}")
