@@ -1,10 +1,10 @@
 import folium
 import numpy as np
 from folium.plugins import MarkerCluster
-from branca.element import Element  # built into folium, used for adding HTML + JS
+from branca.element import Element  # add a tiny HTML+JS side panel
 
 def add_sidepanel_listener(m):
-    # sets up the right-side panel and JS that updates when you click any quake
+    # sets up the right-side panel and JS that updates when any popup opens
     panel = """
     <style>
       .info-panel{
@@ -30,33 +30,50 @@ def add_sidepanel_listener(m):
     return m
 
 def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
-    # filters down to stronger quakes so we don't overload the map
+    # quick filter so we don't overload the map
     d = df.dropna(subset=["lat","lon","mag"]).copy()
-    d = d[d["mag"] >= mag_min].copy()
+    d = d[d["mag"] >= mag_min]
     if "time" in d.columns:
         d = d.sort_values("time", ascending=False)
     d = d.head(limit)
 
-    grp = MarkerCluster(name=f"Quakes (side panel, Mag ≥{mag_min})").add_to(m)
+    # keep clusters for performance; turn off the blue coverage polygon
+    grp = MarkerCluster(
+        name=f"Quakes (side panel, Mag ≥{mag_min})",
+        options={
+            "showCoverageOnHover": False,   # kill the big blue hull
+            "spiderfyOnMaxZoom": True,
+            "disableClusteringAtZoom": 9    # individual dots when zoomed in
+        }
+    ).add_to(m)
 
     for _, r in d.iterrows():
         mag = r.get("mag", "")
         t   = str(r.get("time","")).split("+")[0]
-        lat = round(float(r["lat"]), 3)
-        lon = round(float(r["lon"]), 3)
-        dep = r.get("depth", None)
-        dep = "—" if dep is None or np.isnan(dep) else round(float(dep), 1)
+        lat = float(r["lat"])
+        lon = float(r["lon"])
+
+        # depth: if it's huge, assume meters and convert to km
+        dep_val = r.get("depth", None)
+        if dep_val is None or (isinstance(dep_val, float) and np.isnan(dep_val)):
+            dep = "—"
+        else:
+            dv = float(dep_val)
+            if dv > 1000:  # looks like meters
+                dv = dv / 1000.0
+            dep = round(dv, 1)
+
         mb  = r.get("mag_bin", "")
         city = r.get("nearest_city", None)
         dist = r.get("nearest_km", None)
 
-        # HTML that shows up inside the info panel
+        # builds the HTML shown in the side panel
         rows = [
             ("Magnitude", mag),
             ("Magnitude bin", mb),
             ("Date/Time (UTC)", t),
-            ("Latitude", lat),
-            ("Longitude", lon),
+            ("Latitude", round(lat, 3)),
+            ("Longitude", round(lon, 3)),
             ("Depth (km)", dep),
         ]
         if city is not None and dist is not None:
@@ -73,12 +90,14 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         html.append("</table></div>")
         popup = folium.Popup("".join(html), max_width=320)
 
+        # small, clean dot markers
         folium.CircleMarker(
-            location=[float(r["lat"]), float(r["lon"])],
-            radius=4, weight=0.8, fill=True, fill_opacity=0.85
+            location=[lat, lon],
+            radius=3, weight=0.5, fill=True, fill_opacity=0.85
         ).add_to(grp).add_child(popup)
 
-    # links the listener so the panel updatess
+    # wire up the listener so clicking a dot fills the side panel
     add_sidepanel_listener(m)
     return m
+
 
