@@ -58,5 +58,6 @@ m = Map(location=[34.0, -117.0], zoom_start=6, tiles="cartodbpositron")
 add_filtered_layers(m, df_socal)
 LayerControl(collapsed=False).add_to(m)
 m.save("outputs/earthquake_socal_county_map.html")
-print("All maps saved successfully in the outputs folder.")
+print(f"Saved {output_path}")
+
 
