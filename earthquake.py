@@ -4,6 +4,7 @@ from folium import Map, LayerControl
 from src.layers_decade_mag import add_decade_heat_layers, add_magbin_markers
 from src.single_quake_panel import add_sidepanel_quake_layer
 from src.time_slider import add_time_slider_layer
+from src.major_event import create_major_event_layer
 
 # Download latest version
 path = kagglehub.dataset_download("janus137/six-decades-of-california-earthquakes")
@@ -41,3 +42,11 @@ add_time_slider_layer(m, df_seismic_socal)
 LayerControl(collapsed=False).add_to(m)
 m.save("outputs/earthquake_time_slider.html")
 print("Saved outputs/earthquake_time_slider.html")
+
+# Major historic events with custom facts
+m = Map(location=[36.7, -119.4], zoom_start=6, tiles="cartodbpositron")
+fg_major_events = create_major_event_layer(df_major_events)
+fg_major_events.add_to(m)
+LayerControl(collapsed=False).add_to(m)
+m.save("outputs/earthquake_major_events.html")
+print("Saved outputs/earthquake_major_events.html")
