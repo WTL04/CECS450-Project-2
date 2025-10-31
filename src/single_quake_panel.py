@@ -2,10 +2,10 @@ import folium
 import numpy as np
 import pandas as pd
 from folium.plugins import MarkerCluster
-from branca.element import Element  # lets us embed HTML + JS
+from branca.element import Element  # embed HTML + JS
 
 def add_sidepanel_listener(m):
-    # sets up the right-side panel + JS that updates when any popup opens
+    # right-side panel that updates when any popup opens
     panel = """
     <style>
       .info-panel{
@@ -30,54 +30,55 @@ def add_sidepanel_listener(m):
     m.get_root().html.add_child(Element(html))
     return m
 
+def _format_time(value):
+    # try multiple possible time columns and format nicely
+    if pd.isna(value) or str(value).strip() == "":
+        return "—"
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(str(value).split("+")[0]).strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return str(value)
 
 def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
-    # filter down dataset a bit
+    # filter + sort
     d = df.dropna(subset=["lat","lon","mag"]).copy()
     d = d[d["mag"] >= mag_min]
     if "time" in d.columns:
         d = d.sort_values("time", ascending=False)
     d = d.head(limit)
 
-    # keep clusters for performance but remove the big blue hull
+    # ✅ create magnitude bins if the dataset doesn't provide them
+    if "mag_bin" not in d.columns:
+        bins = [0, 2, 3, 4, 5, 6, 7, 10]
+        labels = ["<2", "2–2.9", "3–3.9", "4–4.9", "5–5.9", "6–6.9", "≥7"]
+        d["mag_bin"] = pd.cut(d["mag"], bins=bins, labels=labels, include_lowest=True)
+
     grp = MarkerCluster(
         name=f"Quakes (side panel, Mag ≥{mag_min})",
         options={
-            "showCoverageOnHover": False,   # disable blue coverage polygon
+            "showCoverageOnHover": False,   # no blue hull polygon
             "spiderfyOnMaxZoom": True,
-            "disableClusteringAtZoom": 9    # uncluster when zoomed in close
+            "disableClusteringAtZoom": 9
         }
     ).add_to(m)
 
     for _, r in d.iterrows():
         mag = r.get("mag", "")
-        # ✅ fix: detect the correct time column and format nicely
-        raw_time = (
-            r.get("time")
-            or r.get("Date")
-            or r.get("datetime")
-            or r.get("time_utc")
-            or ""
-        )
-        if pd.notna(raw_time) and str(raw_time).strip() != "":
-            try:
-                from datetime import datetime
-                t = datetime.fromisoformat(str(raw_time).split("+")[0]).strftime("%Y-%m-%d %H:%M:%S")
-            except Exception:
-                t = str(raw_time)
-        else:
-            t = "—"
+        # pull a timestamp from any known column name
+        raw_time = r.get("time") or r.get("Date") or r.get("datetime") or r.get("time_utc") or ""
+        t = _format_time(raw_time)
 
         lat = float(r["lat"])
         lon = float(r["lon"])
 
-        # convert depth to km if value looks huge
+        # depth → km if it looks like meters
         dep_val = r.get("depth", None)
         if dep_val is None or (isinstance(dep_val, float) and np.isnan(dep_val)):
             dep = "—"
         else:
             dv = float(dep_val)
-            if dv > 1000:  # probably meters
+            if dv > 1000:
                 dv = dv / 1000.0
             dep = round(dv, 1)
 
@@ -85,7 +86,6 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         city = r.get("nearest_city", None)
         dist = r.get("nearest_km", None)
 
-        # build HTML content for the popup / side panel
         rows = [
             ("Magnitude", mag),
             ("Magnitude bin", mb),
@@ -108,18 +108,10 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         html.append("</table></div>")
         popup = folium.Popup("".join(html), max_width=320)
 
-        # small clean circular marker
         folium.CircleMarker(
             location=[lat, lon],
             radius=3, weight=0.5, fill=True, fill_opacity=0.85
         ).add_to(grp).add_child(popup)
 
-    # add JS listener to sync popup with side panel
     add_sidepanel_listener(m)
     return m
-
-    # wire up the listener so clicking a dot fills the side panel
-    add_sidepanel_listener(m)
-    return m
-
-
