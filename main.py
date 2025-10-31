@@ -3,9 +3,7 @@ import pandas as pd
 from folium import Map, LayerControl
 from src.layers_decade_mag import add_decade_heat_layers, add_magbin_markers
 from src.single_quake_panel import add_sidepanel_quake_layer
-
-
-
+from src.time_slider import add_time_slider_layer
 
 # Download latest version
 path = kagglehub.dataset_download("janus137/six-decades-of-california-earthquakes")
@@ -37,3 +35,9 @@ LayerControl(collapsed=False).add_to(m)
 m.save("outputs/earthquake_sidepanel.html")
 print("Saved outputs/earthquake_sidepanel.html")
 
+# time slider layer
+m = Map(location=[36.7, -119.4], zoom_start=6, tiles="cartodbpositron")
+add_time_slider_layer(m, df_seismic_socal)
+LayerControl(collapsed=False).add_to(m)
+m.save("outputs/earthquake_time_slider.html")
+print("Saved outputs/earthquake_time_slider.html")

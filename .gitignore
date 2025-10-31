@@ -1,1 +1,15 @@
+# Python virtual environments
+.venv311/
 venv/
+.env/
+
+# Data files and directories
+outputs/
+datasets/
+__pycache__/
+*.pyc
+
+# IDE specific files
+.vscode/
+.DS_Store
+Thumbs.db
