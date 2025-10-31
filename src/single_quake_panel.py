@@ -1,10 +1,11 @@
 import folium
 import numpy as np
+import pandas as pd
 from folium.plugins import MarkerCluster
-from branca.element import Element  # add a tiny HTML+JS side panel
+from branca.element import Element  # lets us embed HTML + JS
 
 def add_sidepanel_listener(m):
-    # sets up the right-side panel and JS that updates when any popup opens
+    # sets up the right-side panel + JS that updates when any popup opens
     panel = """
     <style>
       .info-panel{
@@ -29,45 +30,62 @@ def add_sidepanel_listener(m):
     m.get_root().html.add_child(Element(html))
     return m
 
+
 def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
-    # quick filter so we don't overload the map
+    # filter down dataset a bit
     d = df.dropna(subset=["lat","lon","mag"]).copy()
     d = d[d["mag"] >= mag_min]
     if "time" in d.columns:
         d = d.sort_values("time", ascending=False)
     d = d.head(limit)
 
-    # keep clusters for performance; turn off the blue coverage polygon
+    # keep clusters for performance but remove the big blue hull
     grp = MarkerCluster(
         name=f"Quakes (side panel, Mag ≥{mag_min})",
         options={
-            "showCoverageOnHover": False,   # kill the big blue hull
+            "showCoverageOnHover": False,   # disable blue coverage polygon
             "spiderfyOnMaxZoom": True,
-            "disableClusteringAtZoom": 9    # individual dots when zoomed in
+            "disableClusteringAtZoom": 9    # uncluster when zoomed in close
         }
     ).add_to(m)
 
     for _, r in d.iterrows():
         mag = r.get("mag", "")
-        t   = str(r.get("time","")).split("+")[0]
+        # ✅ fix: detect the correct time column and format nicely
+        raw_time = (
+            r.get("time")
+            or r.get("Date")
+            or r.get("datetime")
+            or r.get("time_utc")
+            or ""
+        )
+        if pd.notna(raw_time) and str(raw_time).strip() != "":
+            try:
+                from datetime import datetime
+                t = datetime.fromisoformat(str(raw_time).split("+")[0]).strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                t = str(raw_time)
+        else:
+            t = "—"
+
         lat = float(r["lat"])
         lon = float(r["lon"])
 
-        # depth: if it's huge, assume meters and convert to km
+        # convert depth to km if value looks huge
         dep_val = r.get("depth", None)
         if dep_val is None or (isinstance(dep_val, float) and np.isnan(dep_val)):
             dep = "—"
         else:
             dv = float(dep_val)
-            if dv > 1000:  # looks like meters
+            if dv > 1000:  # probably meters
                 dv = dv / 1000.0
             dep = round(dv, 1)
 
-        mb  = r.get("mag_bin", "")
+        mb = r.get("mag_bin", "")
         city = r.get("nearest_city", None)
         dist = r.get("nearest_km", None)
 
-        # builds the HTML shown in the side panel
+        # build HTML content for the popup / side panel
         rows = [
             ("Magnitude", mag),
             ("Magnitude bin", mb),
@@ -90,11 +108,15 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         html.append("</table></div>")
         popup = folium.Popup("".join(html), max_width=320)
 
-        # small, clean dot markers
+        # small clean circular marker
         folium.CircleMarker(
             location=[lat, lon],
             radius=3, weight=0.5, fill=True, fill_opacity=0.85
         ).add_to(grp).add_child(popup)
+
+    # add JS listener to sync popup with side panel
+    add_sidepanel_listener(m)
+    return m
 
     # wire up the listener so clicking a dot fills the side panel
     add_sidepanel_listener(m)
