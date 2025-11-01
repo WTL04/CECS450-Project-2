@@ -4,6 +4,7 @@ from src.filters_magnitude import add_magnitude_layers
 from src.filters_depth import add_depth_layers
 from src.filters_region import add_region_layers
 
+
 def add_filtered_layers(m, df):
     df = df.copy()
     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
@@ -22,3 +23,4 @@ def add_filtered_layers(m, df):
     add_region_layers(m, df)
 
     print("Added all SoCal layers (county-based)")
+

@@ -1,6 +1,7 @@
 import folium
 from folium import FeatureGroup
 
+
 def add_depth_layers(m, df):
     depth_bins = {
         "Shallow (0–30 km)": (0, 30),
