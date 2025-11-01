@@ -4,7 +4,6 @@ venv/
 .env/
 
 # Data files and directories
-outputs/
 datasets/
 __pycache__/
 *.pyc
