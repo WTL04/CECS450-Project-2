@@ -4,7 +4,7 @@ from folium import Map, LayerControl
 from src.layers_decade_mag import add_decade_heat_layers, add_magbin_markers
 from src.single_quake_panel import add_sidepanel_quake_layer
 from src.time_slider import add_time_slider_layer
-from src.major_event import create_major_event_layer
+from src.major_event import create_major_event_layer, create_major_event_norcal_layer
 from src.filters_clusters import add_filtered_layers
 
 # Download latest version
@@ -20,7 +20,7 @@ df_seismic_norcal = pd.read_csv(
 df_seismic_socal = pd.read_csv(
     path + "/data_seismic_SoCal_1960_to_2024DEC31_20241231a.csv"
 )
-df_major_events = pd.read_csv(path + "/major_seismic_events_socal_1800to2024.csv")
+df_major_events_socal = pd.read_csv(path + "/major_seismic_events_socal_1800to2024.csv")
 
 # interactive map with the decade & magnitude toggles
 m = Map(location=[36.7, -119.4], zoom_start=6, tiles="cartodbpositron")
@@ -45,9 +45,14 @@ m.save("outputs/earthquake_time_slider.html")
 print("Saved outputs/earthquake_time_slider.html")
 
 # Major historic events with custom facts
-m = Map(location=[36.7, -119.4], zoom_start=6, tiles="cartodbpositron")
-fg_major_events = create_major_event_layer(df_major_events)
-fg_major_events.add_to(m)
+m = Map(location=[36.5, -120.0], zoom_start=6, tiles="cartodbpositron")
+# Add major SoCal events
+socal_layer = create_major_event_layer(df_major_events_socal)
+socal_layer.add_to(m)
+# Add major NorCal events
+df_seismic_norcal = pd.read_csv("data/major_norcal_events.csv")
+norcal_layer = create_major_event_norcal_layer(df_seismic_norcal)
+norcal_layer.add_to(m)
 LayerControl(collapsed=False).add_to(m)
 m.save("outputs/earthquake_major_events.html")
 print("Saved outputs/earthquake_major_events.html")
