@@ -12,10 +12,10 @@ def _fnum(x, default=0.0):
 def _depth_color_and_label(depth_km: float):
     d = _fnum(depth_km)
     if d < 10:
-        return "#50c878", "Very Shallow (0–10 km)"   # green
+        return "#50c878", "Very Shallow (0–10 km)" 
     elif d < 20:
-        return "#ff8c00", "Shallow (10–20 km)"       # orange
-    return "#9b59b6", "Deeper (>20 km)"              # purple
+        return "#ff8c00", "Shallow (10–20 km)"      
+    return "#9b59b6", "Deeper (>20 km)"            
 
 def _mag_radius(mag):
     m = _fnum(mag)
@@ -37,7 +37,7 @@ def _popup_html(mag, depth, dt, lat, lon, county):
     </div>
     """
 
-# ---------- Region County Mapping ----------
+#Region County Mapping
 REGIONS = {
     "Southern California": [
         "Los Angeles", "Orange", "San Diego", "Riverside", "San Bernardino",
