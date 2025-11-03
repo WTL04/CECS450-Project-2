@@ -138,7 +138,6 @@ print("Saved: outputs/time_slider_map.html")
 print("\n=== Building Region / County Filter Map ===")
 map_region = Map(location=[37.0, -119.5], zoom_start=6, tiles="cartodbpositron")
 
-add_fault_lines(map_region)
 add_region_layers(map_region, df_california)
 add_region_dropdown(map_region)
 
