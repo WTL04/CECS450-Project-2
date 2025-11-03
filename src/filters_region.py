@@ -149,7 +149,6 @@ def add_region_dropdown(map_obj: folium.Map):
         <button id="btnRegion" style="flex:1;padding:6px;border:1px solid #aaa;border-radius:4px;background:#f6f6f6;cursor:pointer;">Show region</button>
         <button id="btnClear" style="flex:1;padding:6px;border:1px solid #aaa;border-radius:4px;background:#f6f6f6;cursor:pointer;">Clear</button>
       </div>
-      <small style="color:#666;display:block;margin-top:8px;">No sidebar. This toggles hidden layer checkboxes under the hood.</small>
     </div>
 
     <script>
@@ -241,3 +240,4 @@ def add_region_dropdown(map_obj: folium.Map):
     </script>
     """
     map_obj.get_root().html.add_child(Element(html))
+
