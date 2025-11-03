@@ -5,7 +5,7 @@ from folium import FeatureGroup, Marker, Icon
 # Socal major events layer
 def create_major_event_layer(df_major):
     """
-    Create a Folium layer for major Southern California earthquakes (1800–2024).
+    Create a Folium layer for major Southern California earthquakes (1960–2024).
     Each event includes a popup with name, year, magnitude, and a brief fact.
     """
     df = df_major.copy()
@@ -60,7 +60,7 @@ def create_major_event_layer(df_major):
     df["fact"] = df.apply(get_fact, axis=1)
 
     # Build layer
-    fg = FeatureGroup(name="Historic Major Earthquakes (1800–2024)")
+    fg = FeatureGroup(name="Historic Major Earthquakes (1960–2024)")
     for _, r in df.iterrows():
         popup_html = f"""
         <b>{r['Event']}</b><br>
