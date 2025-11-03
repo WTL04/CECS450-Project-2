@@ -4,8 +4,8 @@ Magnitude-binned clustered layers with styled popups (no slider).
 
 import folium
 from folium.plugins import MarkerCluster
-import pandas as pd
 from branca.element import Element
+
 
 # --- one-time CSS injector (safe to call multiple times) ---
 def _ensure_popup_css(m):
@@ -45,45 +45,59 @@ def _popup_html(mag, depth_km, dt, lat, lon):
     </div>
     """
 
-def _mag_bins(df):
-    df = df.copy()
-    df["mag"] = pd.to_numeric(df["mag"], errors="coerce")
-    df = df.dropna(subset=["lat","lon","mag"])
-    return (
-        df[df["mag"] < 3.0],
-        df[(df["mag"] >= 3.0) & (df["mag"] < 5.0)],
-        df[df["mag"] >= 5.0],
-    )
-
-def _add_cluster_group(m, name, color, rows, sample_limit: int):
-    if rows.empty: return
-    if len(rows) > sample_limit:
-        rows = rows.sample(sample_limit, random_state=42)
-
-    cluster = MarkerCluster(
-        name=name,
-        options={"disableClusteringAtZoom": 9, "maxClusterRadius": 40},
-        show=False,
-    )
-
-    for _, r in rows.iterrows():
-        mag = float(r.get("mag", 0.0) or 0.0)
-        depth_km = float(r.get("depth", 0.0) or 0.0)
-        html = _popup_html(mag, depth_km, r.get("datetime",""), r["lat"], r["lon"])
-        folium.CircleMarker(
-            [r["lat"], r["lon"]],
-            radius=max(3.0, min(12.0, 1.2*mag + 1.5)),
-            color=color, fill=True, fill_color=color, fill_opacity=0.55, weight=1,
-            popup=folium.Popup(html, max_width=280),
-        ).add_to(cluster)
-
-    cluster.add_to(m)
-
-def add_magnitude_filters(m, df, sample_limit: int = 600):
+def add_magnitude_filters(m, df, sample_limit=600):
+    """
+    Adds magnitude-based clusters with California-specific visual encoding:
+    - Circle color = depth (green/orange/purple)
+    - Circle size = magnitude (8–35 px scale)
+    """
     _ensure_popup_css(m)
     print(f"[magnitude] adding layers @ sample_limit={sample_limit} …")
-    minor, mid, major = _mag_bins(df)
-    _add_cluster_group(m, "Magnitude < 3.0 (Minor)", "#1f77b4", minor, sample_limit)
-    _add_cluster_group(m, "Magnitude 3.0–5.0 (Light–Moderate)", "#ffbf00", mid, sample_limit)
-    _add_cluster_group(m, "Magnitude ≥ 5.0 (Strong+)", "#d62728", major, sample_limit)
+
+    def _depth_color_and_label(depth):
+        if depth < 10:
+            return "#50c878", "Very Shallow (0–10 km)"
+        elif depth < 20:
+            return "#ff8c00", "Shallow (10–20 km)"
+        else:
+            return "#9b59b6", "Deeper (>20 km)"
+
+    def _mag_radius(mag):
+        if mag >= 7.0: return 35
+        elif mag >= 6.0: return 25
+        elif mag >= 5.0: return 18
+        elif mag >= 4.0: return 12
+        else: return 8
+
+    minor = df[df["mag"] < 3.0]
+    mid = df[(df["mag"] >= 3.0) & (df["mag"] < 5.0)]
+    major = df[df["mag"] >= 5.0]
+
+    groups = [
+        ("Magnitude < 3.0 (Minor)", minor),
+        ("Magnitude 3.0–5.0 (Light–Moderate)", mid),
+        ("Magnitude ≥ 5.0 (Strong+)", major)
+    ]
+
+    for title, subset in groups:
+        cluster = MarkerCluster(name=title)
+        for _, r in subset.head(sample_limit).iterrows():
+            mag = float(r.get("mag", 0.0) or 0.0)
+            depth = float(r.get("depth", 0.0) or 0.0)
+            html = _popup_html(mag, depth, r.get("datetime", ""), r["lat"], r["lon"])
+
+            color, _ = _depth_color_and_label(depth)
+            folium.CircleMarker(
+                [r["lat"], r["lon"]],
+                radius=_mag_radius(mag),
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.55,
+                weight=1,
+                popup=folium.Popup(html, max_width=280),
+            ).add_to(cluster)
+        cluster.add_to(m)
+
     print("[magnitude] done.")
+    return (df["mag"].min(), df["mag"].max())
