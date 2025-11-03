@@ -69,7 +69,7 @@ def add_region_layers(
 ):
     print("[Region Layers] Building county-based clusters…")
 
-    # 🔹 Assign counties from GeoJSON if missing
+    #Assign counties from GeoJSON if missing
     counties_url = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/california-counties.geojson"
     gdf_counties = gpd.read_file(counties_url)
 
@@ -85,8 +85,6 @@ def add_region_layers(
     df = df.copy()
     df["county"] = gdf_joined["name"].fillna("Unknown")
     df = df[df["county"] != "Unknown"]
-
-    print(f"[Auto-Assign] {df['county'].nunique()} valid CA counties found.")
 
     for county_name, sub in df.groupby("county"):
         if not isinstance(county_name, str):
@@ -116,8 +114,6 @@ def add_region_layers(
                 weight=1,
                 popup=folium.Popup(popup, max_width=300),
             ).add_to(cluster)
-
-    print("[Region Layers Completed county clustering.")
 
 def add_region_dropdown(map_obj: folium.Map):
     css = """
@@ -240,4 +236,3 @@ def add_region_dropdown(map_obj: folium.Map):
     </script>
     """
     map_obj.get_root().html.add_child(Element(html))
-
