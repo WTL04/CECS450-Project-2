@@ -1,13 +1,8 @@
-"""
-Magnitude-binned clustered layers with styled popups (no slider).
-"""
-
 import folium
 from folium.plugins import MarkerCluster
 from branca.element import Element
 
 
-# --- one-time CSS injector (safe to call multiple times) ---
 def _ensure_popup_css(m):
     css = """
     <style id="eq-popup-css">
@@ -46,11 +41,6 @@ def _popup_html(mag, depth_km, dt, lat, lon):
     """
 
 def add_magnitude_filters(m, df, sample_limit=600):
-    """
-    Adds magnitude-based clusters with California-specific visual encoding:
-    - Circle color = depth (green/orange/purple)
-    - Circle size = magnitude (8–35 px scale)
-    """
     _ensure_popup_css(m)
     print(f"[magnitude] adding layers @ sample_limit={sample_limit} …")
 
