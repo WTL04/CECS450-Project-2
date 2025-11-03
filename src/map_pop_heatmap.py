@@ -32,13 +32,14 @@ def add_pop_heatmap(m, df_pop):
     heat_data = [[pt.y, pt.x] for pt in geo_df.geometry]
     HeatMap(
         heat_data,
-        name="Population heat",
+        name="Context: Population Density",
         radius=12,
         blur=18,
         min_opacity=0.25,
         max_zoom=12,
-        show=True,  # make it visible initially
+        show=False,  # hidden by default (toggle on when needed)
         control=True,
+        overlay=True,
     ).add_to(m)
 
     print("Added population heatmap layer to California")

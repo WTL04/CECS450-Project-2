@@ -1,5 +1,5 @@
 # src/time_slider.py
-def add_time_slider_layer(m, df):
+def add_time_slider_layer(m, df, mag_min=5.0):
     from folium.plugins import TimestampedGeoJson
     import pandas as pd
 
@@ -18,69 +18,70 @@ def add_time_slider_layer(m, df):
         tmp = df.dropna(subset=["lat", "lon", "year"]).copy()
         tmp["__year"] = tmp["year"].astype(int)
 
-    # 2) keep only mag >= 4.0
+    # 2) keep only mag >= mag_min (configurable, default 5.0 for performance)
     mag_col_exists = "mag" in tmp.columns
     if mag_col_exists:
-        tmp = tmp[tmp["mag"] >= 4.0]
+        tmp = tmp[tmp["mag"] >= mag_min]
 
     # 3) sort + years
     tmp = tmp.sort_values("__year")
     years = sorted(tmp["__year"].unique().tolist())
 
     all_features = []
-    seen_parts = []
 
-    # helper to get style from mag
-    def style_from_mag(mag_val: float):
-        # defaults if mag missing
-        if mag_val is None:
-            return {"color": "#ffcc00", "radius": 4}
-
-        # base radius: start at 4, grow with mag
-        # 4.0 -> 4, 5.0 -> 6, 6.0 -> 8, clamp at 10
-        base = 4 + (mag_val - 4) * 2
-        radius = max(3, min(10, base))
-
-        # color ramp
-        if mag_val >= 6.0:
-            color = "#d20000"   # strong red
+    # helper to get style - MATCHES unified layer visual encoding
+    # SIZE = magnitude, COLOR = depth (green/orange/purple)
+    def get_style(mag_val: float, depth_val: float):
+        # Magnitude-based sizing (REDUCED for time slider to be less intrusive)
+        if mag_val >= 7.0:
+            radius = 18  # Reduced from 35
+        elif mag_val >= 6.0:
+            radius = 13  # Reduced from 25
         elif mag_val >= 5.0:
-            color = "#ff6600"   # orange
+            radius = 9   # Reduced from 18
         else:
-            color = "#ffcc00"   # yellow
+            radius = 6   # Reduced from 12
+
+        # Depth-based coloring (adjusted for California's shallow crustal geology)
+        if depth_val < 10:
+            color = "#50c878"  # Green - very shallow
+        elif depth_val < 20:
+            color = "#ff8c00"  # Orange - shallow
+        else:
+            color = "#9b59b6"  # Purple - deeper
 
         return {"color": color, "radius": radius}
 
-    for y in years:
-        this_year = tmp[tmp["__year"] == y]
-        if not this_year.empty:
-            seen_parts.append(this_year)
+    # FIXED: Create one feature per earthquake (non-cumulative) to avoid exponential data growth
+    # Each earthquake appears once at its actual timestamp
+    for _, r in tmp.iterrows():
+        year = int(r["__year"])
+        mag_val = float(r["mag"]) if (mag_col_exists and not pd.isna(r["mag"])) else 5.0
+        depth_val = float(r["depth"]) if not pd.isna(r["depth"]) else 0.0
 
-        cum_df = pd.concat(seen_parts, ignore_index=True)
+        s = get_style(mag_val, depth_val)
 
-        for _, r in cum_df.iterrows():
-            mag_val = float(r["mag"]) if (mag_col_exists and not pd.isna(r["mag"])) else None
-            s = style_from_mag(mag_val)
-
-            all_features.append({
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [float(r["lon"]), float(r["lat"])],
+        all_features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [float(r["lon"]), float(r["lat"])],
+            },
+            "properties": {
+                "time": f"{year:04d}-01-01T00:00:00",
+                "icon": "circle",
+                "iconstyle": {
+                    "fillOpacity": 0.4,  # Reduced from 0.7 to be less distracting
+                    "stroke": "true",
+                    "color": s["color"],     # outline
+                    "fillColor": s["color"], # fill
+                    "radius": s["radius"],
+                    "weight": 1  # Thinner outline
                 },
-                "properties": {
-                    "time": f"{y:04d}-01-01T00:00:00",
-                    "icon": "circle",
-                    "iconstyle": {
-                        "fillOpacity": 0.75,
-                        "stroke": "true",
-                        "color": s["color"],     # outline
-                        "fillColor": s["color"], # fill
-                        "radius": s["radius"],
-                    },
-                },
-            })
+            },
+        })
 
+    # Add time slider directly to map (plugin limitation - cannot be wrapped in FeatureGroup)
     TimestampedGeoJson(
         {"type": "FeatureCollection", "features": all_features},
         period="P1Y",
@@ -91,3 +92,6 @@ def add_time_slider_layer(m, df):
         time_slider_drag_update=True,
         duration="P1Y",
     ).add_to(m)
+
+    print(f"Time slider: {len(tmp)} earthquakes from {min(years)} to {max(years)}")
+    print("Note: Time slider is always active (plugin limitation - cannot be toggled off)")

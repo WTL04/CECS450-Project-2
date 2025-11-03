@@ -58,7 +58,7 @@ def create_major_event_layer(df_major):
     df["fact"] = df.apply(get_fact, axis=1)
 
     # Build layer
-    fg = FeatureGroup(name="Historic Major Earthquakes (1800–2024)")
+    fg = FeatureGroup(name="Historical: Major Earthquakes (1800–2024)", show=True)
     for _, r in df.iterrows():
         popup_html = f"""
         <b>{r['Event']}</b><br>

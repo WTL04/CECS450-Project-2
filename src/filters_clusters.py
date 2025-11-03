@@ -5,7 +5,14 @@ from src.filters_depth import add_depth_layers
 from src.filters_region import add_region_layers
 
 
-def add_filtered_layers(m, df):
+def add_filtered_layers(m, df, mag_sample=800, depth_sample=800, region_sample=600):
+    """
+    Add filtered earthquake layers (magnitude, depth, region) with performance optimization.
+
+    mag_sample: max markers per magnitude bin (default 800)
+    depth_sample: max markers per depth bin (default 800)
+    region_sample: max markers per county (default 600)
+    """
     df = df.copy()
     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
     df["year"] = df["datetime"].dt.year
@@ -17,10 +24,18 @@ def add_filtered_layers(m, df):
     print(f"Loaded {len(df)} SoCal earthquakes")
 
     heat_data = [[r.lat, r.lon, r.mag] for _, r in df.iterrows()]
-    HeatMap(heat_data, radius=10, blur=15, name="Heatmap (All SoCal Events)").add_to(m)
-    add_magnitude_layers(m, df)
-    add_depth_layers(m, df)
-    add_region_layers(m, df)
+    HeatMap(
+        heat_data,
+        radius=10,
+        blur=15,
+        name="Filter: All SoCal Events (Heatmap)",
+        show=False,
+        overlay=True,
+        control=True
+    ).add_to(m)
+    add_magnitude_layers(m, df, sample_limit=mag_sample)
+    add_depth_layers(m, df, sample_limit=depth_sample)
+    add_region_layers(m, df, sample_limit=region_sample)
 
     print("Added all SoCal layers (county-based)")
 

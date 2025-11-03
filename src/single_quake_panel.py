@@ -40,7 +40,7 @@ def _format_time(value):
     except Exception:
         return str(value)
 
-def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
+def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=1200):
     # filter + sort
     d = df.dropna(subset=["lat","lon","mag"]).copy()
     d = d[d["mag"] >= mag_min]
@@ -55,7 +55,8 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         d["mag_bin"] = pd.cut(d["mag"], bins=bins, labels=labels, include_lowest=True)
 
     grp = MarkerCluster(
-        name=f"Quakes (side panel, Mag ≥{mag_min})",
+        name=f"Interactive: Click for Details (Mag ≥{mag_min})",
+        show=False,  # hidden by default - users can toggle on if they want clusters visible
         options={
             "showCoverageOnHover": False,   # no blue hull polygon
             "spiderfyOnMaxZoom": True,
@@ -86,31 +87,36 @@ def add_sidepanel_quake_layer(m, df, mag_min=4.0, limit=4000):
         city = r.get("nearest_city", None)
         dist = r.get("nearest_km", None)
 
-        rows = [
-            ("Magnitude", mag),
-            ("Magnitude bin", mb),
-            ("Date/Time (UTC)", t),
-            ("Latitude", round(lat, 3)),
-            ("Longitude", round(lon, 3)),
-            ("Depth (km)", dep),
-        ]
-        if city is not None and dist is not None:
-            rows.append(("Nearest city", f"{city} ({dist} km)"))
+        # Standardized color based on magnitude
+        if mag >= 5:
+            mag_color = "#d0021b"  # red
+        elif mag >= 3:
+            mag_color = "#f5a623"  # yellow/orange
+        else:
+            mag_color = "#4a90e2"  # blue
 
-        html = ["<div style='font:12px/1.35 -apple-system,Segoe UI,Roboto,Arial;'>",
-                "<div style='font-weight:600;margin-bottom:6px;'>Earthquake Details</div>",
-                "<table style='border-collapse:collapse'>"]
-        for k,v in rows:
-            html.append(
-                f"<tr><td style='padding:2px 8px 2px 0;color:#444;'>{k}</td>"
-                f"<td style='padding:2px 0'><b>{v}</b></td></tr>"
-            )
-        html.append("</table></div>")
-        popup = folium.Popup("".join(html), max_width=320)
+        # Standardized popup format (consistent with filters)
+        popup_html = f"""
+        <div style='font-family: Arial; font-size: 12px; min-width: 180px;'>
+            <b style='color: {mag_color}; font-size: 14px;'>M {mag}</b><br>
+            <b>Depth:</b> {dep} km<br>
+            <b>Date:</b> {t}<br>
+            <b>Location:</b> {round(lat, 3)}, {round(lon, 3)}
+        """
+        if city is not None and dist is not None:
+            popup_html += f"<br><b>Nearest City:</b> {city} ({dist} km)"
+
+        popup_html += "</div>"
+        popup = folium.Popup(popup_html, max_width=220)
 
         folium.CircleMarker(
             location=[lat, lon],
-            radius=3, weight=0.5, fill=True, fill_opacity=0.85
+            radius=4,
+            color=mag_color,
+            fill=True,
+            fill_color=mag_color,
+            fill_opacity=0.7,
+            weight=1
         ).add_to(grp).add_child(popup)
 
     add_sidepanel_listener(m)
