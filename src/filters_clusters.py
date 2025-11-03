@@ -1,8 +1,3 @@
-"""
-Wrapper for magnitude, depth, and county filters.
-Keeps map lightweight with dynamic sampling and compatible with magnitude slider.
-"""
-
 from .filters_magnitude import add_magnitude_filters
 from .filters_depth import add_depth_filters
 
@@ -25,7 +20,7 @@ def add_filtered_layers(m, df, mag_sample=None, depth_sample=None, region_sample
 
     print(f"[filters] dataset={n:,} -> caps: mag={mag_cap}, depth={depth_cap}, county={region_cap}")
 
-    # Magnitude (includes slider)
+    # Magnitude
     add_magnitude_filters(m, df, sample_limit=mag_cap)
 
     # Depth filters
