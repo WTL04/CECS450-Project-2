@@ -5,8 +5,6 @@ Keeps map lightweight with dynamic sampling and compatible with magnitude slider
 
 from .filters_magnitude import add_magnitude_filters
 from .filters_depth import add_depth_filters
-from .filters_region import add_region_filters
-
 
 def _dynamic_limits(n):
     if n >= 300_000:
@@ -33,7 +31,5 @@ def add_filtered_layers(m, df, mag_sample=None, depth_sample=None, region_sample
     # Depth filters
     add_depth_filters(m, df, sample_limit=depth_cap)
 
-    # Regional filters
-    add_region_filters(m, df, sample_limit=region_cap)
 
-    print("[filters] all layers + slider ready.")
+    print("[filters] all layers are ready.")
