@@ -9,9 +9,7 @@ from src.map_fault_lines import add_fault_lines
 from src.filters_clusters import add_filtered_layers
 from src.filters_region import add_region_layers, add_region_dropdown
 
-# ===================================================================
-#                      LOAD & PREPARE DATA
-# ===================================================================
+#LOAD & PREPARE DATA
 
 print("\n=== Loading California Earthquake Dataset ===")
 path = kagglehub.dataset_download("janus137/six-decades-of-california-earthquakes")
@@ -41,31 +39,22 @@ df_california = df_california.dropna(subset=["lat", "lon", "mag"])
 print(f"Depth range: {df_california['depth'].min():.1f}–{df_california['depth'].max():.1f} km")
 print(f"Mean depth: {df_california['depth'].mean():.1f} km")
 
-# ===================================================================
-#                      MASTER MAP (MAIN VIEW)
-# ===================================================================
+#MASTER MAP (MAIN VIEW)
 
 print("\n=== Building Master Earthquake Map ===")
 m = Map(location=[37.0, -119.5], zoom_start=6, tiles="cartodbpositron")
-
-# --- Context Layers ---
 print("Adding base context layers...")
 add_fault_lines(m)
 add_pop_heatmap(m, df_pop)
 add_filtered_layers(m, df_california)
-
-# --- Major Historical Events ---
 print("Adding major earthquake events...")
 fg_major_events = create_major_event_layer(df_major_events)
 fg_major_events_norcal = create_major_event_norcal_layer(df_seismic_norcal_events)
 fg_major_events.add_child(fg_major_events_norcal)
 fg_major_events.add_to(m)
-
-# --- Unified Earthquake Visualization ---
 print("Adding unified magnitude/depth layer...")
 add_unified_earthquake_layer(m, df_california, mag_min=3.0, sample_limit=2500)
 
-# --- Legend & Layer Control ---
 LayerControl(collapsed=False).add_to(m)
 legend_html = """
 <div style="position: fixed; bottom: 50px; left: 50px; width: 300px;
@@ -91,14 +80,10 @@ legend_html = """
 </div>
 """
 m.get_root().html.add_child(Element(legend_html))
-
-# Save master map
 m.save("outputs/master_map.html")
 print("Saved: outputs/master_map.html")
 
-# ===================================================================
-#                      TIME SLIDER MAP
-# ===================================================================
+#TIME SLIDER MAP
 
 print("\n=== Building Time-Slider Earthquake Map ===")
 from src.time_slider import add_time_slider_layer
@@ -131,9 +116,7 @@ m_timeline.get_root().html.add_child(Element(legend_timeline))
 m_timeline.save("outputs/time_slider_map.html")
 print("Saved: outputs/time_slider_map.html")
 
-# ===================================================================
-#                      REGION / COUNTY MAP
-# ===================================================================
+#REGION / COUNTY MAP
 
 print("\n=== Building Region / County Filter Map ===")
 map_region = Map(location=[37.0, -119.5], zoom_start=6, tiles="cartodbpositron")
@@ -175,9 +158,6 @@ map_region.get_root().html.add_child(Element(legend_region))
 map_region.save("outputs/region_filter_map.html")
 print("Saved: outputs/region_filter_map.html")
 
-# ===================================================================
-#                      SUMMARY
-# ===================================================================
 
 print("\n=== All Maps Generated Successfully ===")
 print(f"1. Master Map:      outputs/master_map.html")
