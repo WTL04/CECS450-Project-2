@@ -1,14 +1,9 @@
-"""
-Depth-binned clustered layers with styled popups.
-"""
-
 import folium
 from folium.plugins import MarkerCluster
 from branca.element import Element
 
 
 def _ensure_popup_css(m):
-    # same CSS as magnitude file (safe to inject again)
     css = """
     <style id="eq-popup-css">
       .eq-pop h4{margin:0 0 6px 0;font-weight:600;color:#1b5e20;letter-spacing:.2px}
@@ -100,3 +95,4 @@ def add_depth_filters(m, df, sample_limit=600):
 
     print("[depth] done.")
     return (df["depth"].min(), df["depth"].max())
+
