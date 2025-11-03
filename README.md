@@ -28,3 +28,5 @@ pip install -r req.txt
 ```
 python main.py
 ```
+**Slides
+link - https://www.canva.com/design/DAG3TJLlkFE/5KDGT62LuA6vxbd3PAR8yQ/edit?utm_content=DAG3TJLlkFE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
