@@ -32,15 +32,17 @@ def add_time_slider_layer(m, df, mag_min=5.0):
     # helper to get style - MATCHES unified layer visual encoding
     # SIZE = magnitude, COLOR = depth (green/orange/purple)
     def get_style(mag_val: float, depth_val: float):
-        # Magnitude-based sizing (REDUCED for time slider to be less intrusive)
+        # Magnitude-based sizing (MATCHES unified layer exactly)
         if mag_val >= 7.0:
-            radius = 18  # Reduced from 35
+            radius = 35  # Massive - unmissable!
         elif mag_val >= 6.0:
-            radius = 13  # Reduced from 25
+            radius = 25  # Very large
         elif mag_val >= 5.0:
-            radius = 9   # Reduced from 18
+            radius = 18  # Large
+        elif mag_val >= 4.0:
+            radius = 12  # Medium
         else:
-            radius = 6   # Reduced from 12
+            radius = 8   # Small but still visible
 
         # Depth-based coloring (adjusted for California's shallow crustal geology)
         if depth_val < 10:

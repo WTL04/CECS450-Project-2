@@ -57,17 +57,13 @@ add_unified_earthquake_layer(m, df_california, mag_min=3.0, sample_limit=2500)
 
 LayerControl(collapsed=False).add_to(m)
 legend_html = """
-<div style="position: fixed; bottom: 50px; left: 50px; width: 300px;
+<div style="position: fixed; bottom: 50px; left: 50px; width: 280px;
             background: white; border: 2px solid grey; z-index: 9999;
             font-size: 13px; padding: 12px; border-radius: 6px;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);">
   <h4 style="margin-top: 0;">Visual Encoding</h4>
   <b>Circle Size = Magnitude</b><br>
-  <span style="font-size:14px;">●</span> M3–4 (Minor)<br>
-  <span style="font-size:20px;">●</span> M4–5 (Light)<br>
-  <span style="font-size:28px;">●</span> M5–6 (Moderate)<br>
-  <span style="font-size:38px;">●</span> M6–7 (Strong)<br>
-  <span style="font-size:48px;">●</span> M7+ (Major)<br><br>
+  <span style="font-size:12px;color:#666;">(Larger = stronger quakes)</span><br><br>
   <b>Circle Color = Depth</b><br>
   <span style="color:#50c878;font-size:20px;">●</span> Very Shallow (0–10 km)<br>
   <span style="color:#ff8c00;font-size:20px;">●</span> Shallow (10–20 km)<br>
@@ -91,25 +87,25 @@ from src.time_slider import add_time_slider_layer
 m_timeline = Map(location=[37.0, -119.5], zoom_start=6, tiles="cartodbpositron")
 
 add_fault_lines(m_timeline)
-add_time_slider_layer(m_timeline, df_california, mag_min=5.0)
+add_time_slider_layer(m_timeline, df_california, mag_min=3.0)
 
 legend_timeline = """
 <div style="position: fixed; bottom: 50px; left: 50px; width: 280px;
             background: white; border: 2px solid grey; z-index: 9999;
             font-size: 13px; padding: 12px; border-radius: 6px;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);">
-  <h4 style="margin-top: 0;">Temporal View (1960–2024)</h4>
+  <h4 style="margin-top: 0;">Temporal View (1960–2001)</h4>
   <b>Circle Size = Magnitude</b><br>
-  <span style="font-size:12px;color:#999;">(Larger = stronger quakes)</span><br><br>
+  <span style="font-size:12px;color:#666;">(Larger = stronger quakes)</span><br><br>
   <b>Circle Color = Depth</b><br>
-  <span style="color:#50c878;font-size:20px;">●</span> 0–10 km<br>
-  <span style="color:#ff8c00;font-size:20px;">●</span> 10–20 km<br>
-  <span style="color:#9b59b6;font-size:20px;">●</span> >20 km<br>
+  <span style="color:#50c878;font-size:20px;">●</span> Very Shallow (0–10 km)<br>
+  <span style="color:#ff8c00;font-size:20px;">●</span> Shallow (10–20 km)<br>
+  <span style="color:#9b59b6;font-size:20px;">●</span> Deeper (>20 km)<br>
   <hr style="margin:8px 0;">
   <b>💡 Controls:</b><br>
   • ▶ Play to animate by year<br>
   • Drag to scrub timeline<br>
-  • Observe 64 years of patterns
+  • Observe 50 years of patterns
 </div>
 """
 m_timeline.get_root().html.add_child(Element(legend_timeline))
@@ -121,35 +117,26 @@ print("Saved: outputs/time_slider_map.html")
 print("\n=== Building Region / County Filter Map ===")
 map_region = Map(location=[37.0, -119.5], zoom_start=6, tiles="cartodbpositron")
 
+add_fault_lines(map_region)
 add_region_layers(map_region, df_california)
 add_region_dropdown(map_region)
 
 legend_region = """
-<div style="position: fixed; bottom: 30px; left: 30px; z-index: 9999;
-            background: #fff; padding: 14px 16px; border-radius: 6px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            font: 13px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
-            width: 270px;">
-  <b>Region View (1960–2024)</b><br>
+<div style="position: fixed; bottom: 50px; left: 50px; width: 280px;
+            background: white; border: 2px solid grey; z-index: 9999;
+            font-size: 13px; padding: 12px; border-radius: 6px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);">
+  <h4 style="margin-top: 0;">Region View (1960–2024)</h4>
   <b>Circle Size = Magnitude</b><br>
-  <span style="color:#666;">(Larger = stronger quakes)</span><br><br>
+  <span style="font-size:12px;color:#666;">(Larger = stronger quakes)</span><br><br>
   <b>Circle Color = Depth</b><br>
-  <div style="margin-top:4px;">
-    <span style="display:inline-block;width:12px;height:12px;background:#50c878;border-radius:50%;margin-right:6px;"></span>
-    0–10 km (Very Shallow)
-  </div>
-  <div style="margin-top:4px;">
-    <span style="display:inline-block;width:12px;height:12px;background:#ff8c00;border-radius:50%;margin-right:6px;"></span>
-    10–20 km (Shallow)
-  </div>
-  <div style="margin-top:4px;">
-    <span style="display:inline-block;width:12px;height:12px;background:#9b59b6;border-radius:50%;margin-right:6px;"></span>
-    >20 km (Deeper)
-  </div>
-  <hr style="margin:10px 0;border:none;border-top:1px solid #ddd;">
+  <span style="color:#50c878;font-size:20px;">●</span> Very Shallow (0–10 km)<br>
+  <span style="color:#ff8c00;font-size:20px;">●</span> Shallow (10–20 km)<br>
+  <span style="color:#9b59b6;font-size:20px;">●</span> Deeper (>20 km)<br>
+  <hr style="margin:8px 0;">
   <b>💡 Controls:</b><br>
   • Filter by region or county<br>
-  • Click “Clear” to reset<br>
+  • Click "Clear" to reset<br>
   • Explore magnitude & depth interactively
 </div>
 """

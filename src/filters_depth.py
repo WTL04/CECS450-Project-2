@@ -3,38 +3,27 @@ from folium.plugins import MarkerCluster
 from branca.element import Element
 
 
-def _ensure_popup_css(m):
-    css = """
-    <style id="eq-popup-css">
-      .eq-pop h4{margin:0 0 6px 0;font-weight:600;color:#1b5e20;letter-spacing:.2px}
-      .eq-pop .bar{height:2px;background:#1b5e20;margin:4px 0 8px 0;border-radius:2px}
-      .eq-pop .row{margin:2px 0}
-      .eq-tag{padding:1px 6px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
-      .eq-tag.shallow-v{background:#d9f0d8;color:#1b5e20;border:1px solid #b7e3b4}
-      .eq-tag.shallow{background:#fff3cd;color:#a86403;border:1px solid #ffe69c}
-      .eq-tag.deep{background:#e6e9ff;color:#253996;border:1px solid #c8d0ff}
-    </style>
-    """
-    m.get_root().header.add_child(Element(css))
-
-def _depth_bucket(depth_km):
-    try: d = float(depth_km)
-    except Exception: d = 0.0
-    if 0 <= d < 10:   return ("Very Shallow (0–10 km)", "shallow-v")
-    if 10 <= d < 20:  return ("Shallow (10–20 km)", "shallow")
-    return ("Deeper (> 20 km)", "deep")
-
 def _popup_html(mag, depth_km, dt, lat, lon):
-    label, cls = _depth_bucket(depth_km)
+    # Depth-based coloring (matches unified layer)
+    if depth_km < 10:
+        color = "#50c878"
+        depth_label = "Very Shallow (0-10 km)"
+    elif depth_km < 20:
+        color = "#ff8c00"
+        depth_label = "Shallow (10-20 km)"
+    else:
+        color = "#9b59b6"
+        depth_label = "Deeper (>20 km)"
+
     return f"""
-    <div class="eq-pop">
-      <h4>Magnitude {mag:.1f}</h4>
-      <div class="bar"></div>
-      <div class="row"><b>Depth:</b> {depth_km:.1f} km
-        <span class="eq-tag {cls}">{label}</span>
-      </div>
-      <div class="row"><b>Date:</b> {dt}</div>
-      <div class="row"><b>Location:</b> {lat:.3f}°, {lon:.3f}°</div>
+    <div style='font-family: Arial; font-size: 13px; min-width: 180px;'>
+        <div style='border-bottom: 2px solid {color}; margin-bottom: 8px; padding-bottom: 4px;'>
+            <b style='font-size: 16px;'>Magnitude {mag:.1f}</b>
+        </div>
+        <b>Depth:</b> {depth_km:.1f} km
+        <span style='color: {color}; font-weight: bold;'>({depth_label})</span><br>
+        <b>Date:</b> {dt if dt else 'Unknown'}<br>
+        <b>Location:</b> {lat:.3f}°, {lon:.3f}°
     </div>
     """
 
@@ -45,7 +34,6 @@ def add_depth_filters(m, df, sample_limit=600):
     - Circle color = depth (green/orange/purple)
     - Circle size = magnitude (8–35 px scale)
     """
-    _ensure_popup_css(m)
     print(f"[depth] adding layers @ sample_limit={sample_limit} …")
 
     def _depth_color_and_label(depth):
@@ -74,8 +62,19 @@ def add_depth_filters(m, df, sample_limit=600):
     ]
 
     for title, subset in groups:
-        cluster = MarkerCluster(name=title)
-        for _, r in subset.head(sample_limit).iterrows():
+        cluster = MarkerCluster(
+            name=title,
+            options={
+                'disableClusteringAtZoom': 9,  # Match unified layer
+                'maxClusterRadius': 40,
+                'spiderfyOnMaxZoom': False,
+                'showCoverageOnHover': False,
+                'zoomToBoundsOnClick': True
+            }
+        )
+        # Sample from entire dataset, not just head (which may be geographically biased)
+        sampled = subset.sample(n=min(sample_limit, len(subset)), random_state=42) if len(subset) > sample_limit else subset
+        for _, r in sampled.iterrows():
             mag = float(r.get("mag", 0.0) or 0.0)
             depth = float(r.get("depth", 0.0) or 0.0)
             html = _popup_html(mag, depth, r.get("datetime", ""), r["lat"], r["lon"])
@@ -87,9 +86,10 @@ def add_depth_filters(m, df, sample_limit=600):
                 color=color,
                 fill=True,
                 fill_color=color,
-                fill_opacity=0.55,
-                weight=1,
-                popup=folium.Popup(html, max_width=280),
+                fill_opacity=0.6,
+                weight=2,
+                opacity=0.8,
+                popup=folium.Popup(html, max_width=250),
             ).add_to(cluster)
         cluster.add_to(m)
 

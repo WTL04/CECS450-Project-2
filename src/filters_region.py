@@ -28,12 +28,15 @@ def _mag_radius(mag):
 def _popup_html(mag, depth, dt, lat, lon, county):
     color, depth_label = _depth_color_and_label(depth)
     return f"""
-    <div style="font:13px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial">
-      <b>Magnitude:</b> {_fnum(mag):.1f}<br/>
-      <b>Depth:</b> {_fnum(depth):.1f} km <span style="color:{color}">•</span> <i>{depth_label}</i><br/>
-      <b>County:</b> {county}<br/>
-      <b>Date:</b> {dt or "—"}<br/>
-      <b>Location:</b> {_fnum(lat):.4f}, {_fnum(lon):.4f}
+    <div style='font-family: Arial; font-size: 13px; min-width: 180px;'>
+        <div style='border-bottom: 2px solid {color}; margin-bottom: 8px; padding-bottom: 4px;'>
+            <b style='font-size: 16px;'>Magnitude {_fnum(mag):.1f}</b>
+        </div>
+        <b>Depth:</b> {_fnum(depth):.1f} km
+        <span style='color: {color}; font-weight: bold;'>({depth_label})</span><br>
+        <b>County:</b> {county}<br>
+        <b>Date:</b> {dt if dt else 'Unknown'}<br>
+        <b>Location:</b> {_fnum(lat):.3f}°, {_fnum(lon):.3f}°
     </div>
     """
 
@@ -111,8 +114,9 @@ def add_region_layers(
                 fill=True,
                 fill_color=color,
                 fill_opacity=0.6,
-                weight=1,
-                popup=folium.Popup(popup, max_width=300),
+                weight=2,
+                opacity=0.8,
+                popup=folium.Popup(popup, max_width=250),
             ).add_to(cluster)
 
 def add_region_dropdown(map_obj: folium.Map):

@@ -19,11 +19,11 @@ def add_unified_earthquake_layer(m, df, mag_min=3.0, sample_limit=2000):
     if sample_limit and len(df_filtered) > sample_limit:
         df_filtered = df_filtered.sample(n=sample_limit, random_state=42)
 
-    print(f"Creating unified layer with {len(df_filtered):,} earthquakes (Mag ≥ {mag_min})")
+    print(f"Creating unified layer with {len(df_filtered):,} earthquakes (Mag >= {mag_min})")
 
     # Create marker cluster with optimized settings
     cluster = MarkerCluster(
-        name=f"All Earthquakes (Mag ≥{mag_min}) — Size=Magnitude, Color=Depth",
+        name=f"All Earthquakes (Mag >={mag_min}) -- Size=Magnitude, Color=Depth",
         show=False,  # hidden by default - toggle on to explore
         overlay=True,
         control=True,
