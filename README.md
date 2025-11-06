@@ -1,6 +1,6 @@
 # CECS 450 - Project 2: Interactive Earthquake Visualization
 Team 7:
-- Russel Harral
+- Russell Harral
 - Brizeyda Hermandez
 - Anh Pham
 - William Luu
