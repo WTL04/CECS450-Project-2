@@ -6,6 +6,11 @@ Team 7:
 - William Luu
 - Om Patel
 
+## Project Presentation Slides
+Access through Canva using this link 
+
+https://www.canva.com/design/DAG3TJLlkFE/5KDGT62LuA6vxbd3PAR8yQ/edit?utm_content=DAG3TJLlkFE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 ## Project Setup and Run Instruction 
 **Clone this repository**
 ```
@@ -28,4 +33,4 @@ pip install -r req.txt
 ```
 python main.py
 ```
-Slides link - https://www.canva.com/design/DAG3TJLlkFE/5KDGT62LuA6vxbd3PAR8yQ/edit?utm_content=DAG3TJLlkFE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
